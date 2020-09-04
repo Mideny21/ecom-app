@@ -6,10 +6,13 @@ import 'package:ecom_app/widgets/carousel.dart';
 import 'package:ecom_app/widgets/home_categories.dart';
 import 'package:ecom_app/widgets/home_hot_producs.dart';
 
+import 'package:ecom_app/screens/cart_screen.dart';
+
 // SERVICES
 import 'package:ecom_app/services/slider_service.dart';
 import 'package:ecom_app/services/category_service.dart';
 import 'package:ecom_app/services/Product_service.dart';
+import 'package:ecom_app/services/cart_service.dart';
 
 //MODELS
 import 'package:ecom_app/models/category.dart';
@@ -28,6 +31,9 @@ class _HomeScreenState extends State<HomeScreen> {
   List<Product> _productList = List<Product>();
   List<Category> _categoryList = List<Category>();
 
+  CartService _cartService = CartService();
+  List<Product> _cartItems;
+
   var items = [];
 
   @override
@@ -37,6 +43,25 @@ class _HomeScreenState extends State<HomeScreen> {
     _getAllSliders();
     _getAllCategories();
     _getAllProducts();
+    _getCartItems();
+  }
+
+  _getCartItems() async {
+    _cartItems = List<Product>();
+    var cartItems = await _cartService.getCartItems();
+    cartItems.forEach((data) {
+      var product = Product();
+      product.id = data['productId'];
+      product.name = data['productName'];
+      product.photo = data['productPhoto'];
+      product.price = data['productPrice'];
+      // product.details = data['productDetail'] ?? 'No detail';
+      product.quantity = data['productQuantity'];
+
+      setState(() {
+        _cartItems.add(product);
+      });
+    });
   }
 
   _getAllSliders() async {
@@ -85,8 +110,51 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('ecomm App'),
+        title: Text('Dine ecom'),
         backgroundColor: Colors.redAccent,
+        actions: <Widget>[
+          InkWell(
+            onTap: () {
+              Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => CartScreen(_cartItems)));
+            },
+            child: Padding(
+              padding: const EdgeInsets.all(10.0),
+              child: Container(
+                height: 150,
+                width: 30,
+                child: Stack(
+                  children: <Widget>[
+                    IconButton(
+                      iconSize: 30,
+                      icon: Icon(
+                        Icons.shopping_cart,
+                        color: Colors.white,
+                      ),
+                      onPressed: () {},
+                    ),
+                    Positioned(
+                      child: Stack(
+                        children: <Widget>[
+                          Icon(Icons.brightness_1,
+                              size: 25, color: Colors.black),
+                          Positioned(
+                            top: 4.0,
+                            right: 8.0,
+                            child: Center(
+                                child: Text(_cartItems.length.toString())),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          )
+        ],
       ),
       body: Container(
         child: ListView(
